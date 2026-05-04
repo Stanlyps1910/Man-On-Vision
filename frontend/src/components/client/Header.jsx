@@ -11,7 +11,7 @@ export default function Header({ toggleSidebar }) {
           {/* Brand */}
           <Link to="/portal" className="flex items-center gap-3">
             <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center overflow-hidden">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover scale-150" />
+              <img src="/assets/MOV-logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-[10px] font-bold tracking-[0.3em] uppercase">Man On Vision</span>
           </Link>

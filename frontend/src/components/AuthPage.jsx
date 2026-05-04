@@ -4,7 +4,7 @@ import { User, Shield, Mail, Lock, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import API_BASE_URL from '../utils/apiConfig';
-import logo from "../assets/logo.png";
+const logo = "/assets/MOV-logo.png";
 
 const AuthPage = () => {
     const { user, login } = useAuth();

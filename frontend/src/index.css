@@ -20,6 +20,9 @@
     font-family: 'Inter', sans-serif;
     background-color: var(--luxury-beige);
   }
+
+
+
   
   h1, h2, h3, h4, h5, h6 {
     @apply font-serif tracking-tight text-stone-800;

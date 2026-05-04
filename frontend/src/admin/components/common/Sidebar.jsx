@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../context/AuthContext";
-import logo from "../../../assets/logo.png";
+const logo = "/assets/MOV-logo.png";
 
 import {
   LayoutDashboard,
@@ -31,7 +31,7 @@ const Sidebar = function Sidebar({ onClose }) {
   const dispatch = useDispatch();
   const unreadCount = useSelector(state => state.chat.adminUnreadCount);
   const socketRef = useRef(null);
-  
+
   const cleanToken = (raw) => {
     if (!raw || typeof raw !== 'string') return null;
     const cleaned = raw.replace(/^["']|["']$/g, '').trim();
@@ -40,26 +40,26 @@ const Sidebar = function Sidebar({ onClose }) {
 
   useEffect(() => {
     const token = cleanToken(authContextToken || localStorage.getItem("token"));
-    
+
     // Auth Gate: Strictly only fire if we have a valid user and a sanitized token
     if (authUser && token) {
       console.log('--- [SIDEBAR] --- Session Ready, Initializing Hooks ---');
-      
-      const socket = io(API_URL, { 
+
+      const socket = io(API_URL, {
         auth: { token },
         reconnection: true,
-        reconnectionAttempts: 5 
+        reconnectionAttempts: 5
       });
       socketRef.current = socket;
-      
+
       socket.on("connect", () => {
-          socket.emit("join_chat", "admin");
-          // Re-sync counts on every clean connection
-          dispatch(fetchUnreadCounts());
+        socket.emit("join_chat", "admin");
+        // Re-sync counts on every clean connection
+        dispatch(fetchUnreadCounts());
       });
 
       socket.on("room_updated", (data) => dispatch(handleRoomUpdate(data)));
-      
+
       socket.on("unread_count_update", (data) => {
         if (data && typeof data.count === 'number') dispatch(setAdminUnreadCount(data.count));
       });
