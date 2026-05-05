@@ -12,7 +12,8 @@ import {
   Instagram,
   X,
   Bell,
-  User
+  User,
+  Gamepad2
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
@@ -69,6 +70,7 @@ export default function ClientSidebar({ onClose }) {
   const navLinks = [
     { name: "Dashboard", path: "/portal", icon: Home, exact: true },
     { name: "Edited Photos", path: "/portal/gallery", icon: Image },
+
     { name: "Concierge", path: "/portal/chats", icon: MessageSquare, hasUnread: unreadCount > 0 },
     { name: "My Profile", path: "/portal/profile", icon: User },
   ];
