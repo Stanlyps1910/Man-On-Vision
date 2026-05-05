@@ -6,7 +6,7 @@ const HeroSection = () => {
     return (
         <section 
             id="home" 
-            className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-white"
+            className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-transparent"
         >
             {/* Liquid Maze Background */}
             <div className="absolute inset-0 z-0">

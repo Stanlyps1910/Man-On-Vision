@@ -9,7 +9,7 @@ const SectionIntro = () => {
             <LiquidMazeStatic 
                 color1="#ffb040" 
                 color2="#ff5a96" 
-                bgColor="#ffffff" 
+                bgColor="#fff5f2" 
                 density={1.2} 
                 speed={0.015} 
             />
