@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { numberToIndianWords } from '../../utils/numberToWords';
-import logo from "../../../assets/logo.png";
+// Logo is now served from public/assets/MOV-logo.png
 
 const EstimatePreview = forwardRef(({ data }, ref) => {
      // A4 proportions: 794 x 1123 px at 96 DPI
@@ -33,7 +33,7 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
                 {/* Primary Logo - Centered */}
                 <div className="flex flex-col items-center mb-10 px-4">
                     <img
-                        src={logo}
+                        src="/assets/MOV-logo.png"
                         alt="Man On Vision Logo"
                         style={{
                             width: "180px",

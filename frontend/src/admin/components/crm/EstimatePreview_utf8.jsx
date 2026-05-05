@@ -41,7 +41,7 @@ const EstimatePreview = forwardRef(({ data }, ref) => {
                     </h1>
 
                     <div className="mt-8 mb-40">
-                        <img src="/logo.png" className="w-48 h-auto object-contain" alt="Man On Vision"
+                        <img src="/assets/MOV-logo.png" className="w-48 h-auto object-contain" alt="Man On Vision"
                             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
                         <div style={{ display: 'none' }} className="w-48 h-48 flex items-center justifies-center bg-gray-200 font-bold text-2xl">MAN ON VISION</div>
                     </div>
