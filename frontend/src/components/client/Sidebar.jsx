@@ -3,13 +3,13 @@ import { NavLink, Link, useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchClientUnreadCounts, setClientUnreadCount, handleRoomUpdate } from '../../store/slices/chatSlice';
 import { motion } from "framer-motion";
-import { 
-  Heart, 
-  Home, 
-  Image, 
-  MessageSquare, 
-  LogOut, 
-  Instagram, 
+import {
+  Heart,
+  Home,
+  Image,
+  MessageSquare,
+  LogOut,
+  Instagram,
   X,
   Bell,
   User,
@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
-import logo from "../../assets/logo.png";
+const logo = "/assets/MOV-logo.png";
 
 
 export default function ClientSidebar({ onClose }) {
@@ -26,7 +26,7 @@ export default function ClientSidebar({ onClose }) {
   const dispatch = useDispatch();
   const unreadCount = useSelector(state => state.chat.clientUnreadCount);
   const socketRef = useRef(null);
-  
+
   const { user } = useAuth();
   const userId = user?.id || user?._id;
 
@@ -45,7 +45,7 @@ export default function ClientSidebar({ onClose }) {
     const token = localStorage.getItem("token");
 
     if (userId && token) {
-      const socket = io(import.meta.env.VITE_API_URL || "", { 
+      const socket = io(import.meta.env.VITE_API_URL || "", {
         auth: { token },
         reconnection: true
       });
@@ -56,10 +56,10 @@ export default function ClientSidebar({ onClose }) {
       dispatch(fetchClientUnreadCounts());
 
       socket.on("room_updated", (data) => dispatch(handleRoomUpdate(data)));
-      
+
       socket.on("chat_seen", (data) => {
         if (data.chatId === 'admin' || data.chatId === userId) {
-            dispatch(setClientUnreadCount(0));
+          dispatch(setClientUnreadCount(0));
         }
       });
 
@@ -77,7 +77,7 @@ export default function ClientSidebar({ onClose }) {
 
   return (
     <div className="w-[280px] lg:w-[260px] h-full lg:h-[calc(100vh-40px)] m-0 lg:m-5 lg:ml-8 lg:mt-6 relative z-50 flex flex-col bg-white rounded-none lg:rounded-[32px] border-r lg:border border-black/[0.03] shadow-2xl lg:shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden py-10 px-6 animate-in slide-in-from-left-4 duration-700">
-      
+
       <div className="mb-14 px-2 flex justify-between items-center text-center mx-auto">
         <Link to="/portal" className="flex flex-col gap-0 group items-center">
           <img
@@ -114,8 +114,8 @@ export default function ClientSidebar({ onClose }) {
             onClick={() => onClose && onClose()}
             className={({ isActive }) => `
               relative flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group
-              ${isActive 
-                ? 'bg-gradient-to-r from-[#FDE8E8] to-[#FDFBF7] text-[#BA6A5D] shadow-[0_4px_20px_rgba(186,106,93,0.15)] border border-[#BA6A5D]/10' 
+              ${isActive
+                ? 'bg-gradient-to-r from-[#FDE8E8] to-[#FDFBF7] text-[#BA6A5D] shadow-[0_4px_20px_rgba(186,106,93,0.15)] border border-[#BA6A5D]/10'
                 : 'text-stone-500 hover:bg-stone-50 hover:text-stone-900'}
             `}
           >
@@ -137,7 +137,7 @@ export default function ClientSidebar({ onClose }) {
       </nav>
 
       <div className="pt-6 border-t border-black/5 space-y-4 px-1 pb-4">
-        <button 
+        <button
           onClick={handleLogout}
           className="w-full flex items-center gap-4 px-5 py-3 rounded-2xl text-[#BA6A5D] hover:bg-[#BA6A5D]/10 transition-all duration-300 group"
         >
@@ -146,14 +146,14 @@ export default function ClientSidebar({ onClose }) {
         </button>
 
         <div className="px-5 py-4 bg-stone-50 rounded-[20px] text-center">
-            <p className="text-[8px] text-stone-500 uppercase tracking-widest leading-[1.6]">
-                Personal Client Portal <br /> <span className="text-stone-800 font-bold">2026 Season</span>
-            </p>
-            <div className="mt-3 flex justify-center gap-4">
-                <a href="https://www.instagram.com/man.on.vision?utm_source=qr&igsh=aGRxMjNqdDN6cHox" target="_blank" rel="noreferrer" className="text-stone-400 hover:text-stone-800 transition-colors">
-                    <Instagram size={12} strokeWidth={1.5} />
-                </a>
-            </div>
+          <p className="text-[8px] text-stone-500 uppercase tracking-widest leading-[1.6]">
+            Personal Client Portal <br /> <span className="text-stone-800 font-bold">2026 Season</span>
+          </p>
+          <div className="mt-3 flex justify-center gap-4">
+            <a href="https://www.instagram.com/man.on.vision?utm_source=qr&igsh=aGRxMjNqdDN6cHox" target="_blank" rel="noreferrer" className="text-stone-400 hover:text-stone-800 transition-colors">
+              <Instagram size={12} strokeWidth={1.5} />
+            </a>
+          </div>
         </div>
       </div>
     </div>

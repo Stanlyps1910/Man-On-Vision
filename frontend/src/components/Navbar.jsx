@@ -4,7 +4,7 @@ import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-import logo from "../assets/logo.png";
+const logo = "/assets/MOV-logo.png";
 
 
 const Navbar = () => {

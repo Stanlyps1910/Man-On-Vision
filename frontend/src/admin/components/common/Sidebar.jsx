@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../context/AuthContext";
-import logo from "../../../assets/logo.png";
+const logo = "/assets/MOV-logo.png";
 
 import {
   LayoutDashboard,

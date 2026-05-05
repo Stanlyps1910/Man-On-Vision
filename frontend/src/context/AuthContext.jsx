@@ -19,9 +19,16 @@ export const AuthProvider = ({ children }) => {
         const storedToken = cleanToken(localStorage.getItem('token'));
         const storedUser = localStorage.getItem('user');
         if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            try {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
+            } catch (err) {
+                console.error("Auth initialization failed", err);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+            }
         }
+
         setLoading(false);
     }, []);
 

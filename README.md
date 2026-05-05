@@ -56,7 +56,32 @@ Man On Vision is a high-fidelity, full-stack platform designed for elite media b
 
 ---
 
+## 🎨 Design System & Aesthetics
+
+Man On Vision follows a "Luxury Zen" aesthetic—combining ultra-minimalist layouts with high-performance organic backgrounds.
+
+### 🌊 Dynamic Background (WaveBackground.jsx)
+- **Technology**: Custom WebGL Fragment Shader.
+- **Visuals**: A sharp, high-fidelity "Liquid Maze" or "Isoline" pattern.
+- **Logic**: Uses Simplex Noise (`snoise`) with a `sin` thresholding layer to create thin, organic lines.
+- **Interactivity**: Features a localized magnetic distortion field that follows the cursor, creating an organic "push" effect on the lines.
+
+### 🎭 Typography
+- **Primary Serif**: Used for branding and headings (`Man On Vision`). Characterized by high contrast and wide tracking.
+- **System Sans**: Used for body text, uppercase subheaders, and navigation. Tracking is pushed to `0.4em` - `0.8em` for a premium, airy feel.
+
+### 🌈 Color Palette
+- **Primary Gradient**: Pink (`vec3(1.0, 0.35, 0.6)`) to Orange (`vec3(1.0, 0.65, 0.25)`).
+- **Accents**: 
+  - `Luxury Gold`: `#D4AF37` (used for active states and highlights).
+  - `Stone 900`: `#1C1917` (used for deep contrast text).
+  - `Pure White`: `#FFFFFF` (used for glassmorphic card backgrounds).
+
+---
+
 ## 🧹 Maintenance & Cleanup (Recently Completed)
+- **WebGL Refinement**: Optimized the background for 60fps and ultra-thin, sharp minimalist lines.
+- **Logo Standardization**: Fixed broken asset paths across AuthPage, Navbar, and Sidebars. All logos now reference `/assets/MOV-logo.png` or `/assets/file.svg`.
 - **Hardcoded Data Removal**: Replaced generic "Team Alpha" branding with "Man On Vision" across the entire codebase.
 - **Redundant File Purge**: Deleted 20+ temporary test scripts, outdated log files, and one-off maintenance utilities to slim down the repository.
 - **Environment Stabilization**: Standardized the `.env` requirements to ensure smooth deployment on platforms like Render or Vercel.

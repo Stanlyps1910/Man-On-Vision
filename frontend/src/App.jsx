@@ -3,19 +3,14 @@ import { Suspense, lazy, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 import { Bell } from 'lucide-react';
+import WaveBackground from './components/common/WaveBackground';
+import { Toaster } from 'react-hot-toast';
 
 // Website imports (Lazy loaded for performance)
 const Navbar = lazy(() => import('./components/Navbar'));
-const Hero = lazy(() => import('./components/Hero'));
-const About = lazy(() => import('./components/About'));
-const Services = lazy(() => import('./components/Services'));
-const Gallery = lazy(() => import('./components/Gallery'));
-const Testimonials = lazy(() => import('./components/Testimonials'));
-const Contact = lazy(() => import('./components/Contact'));
 const Footer = lazy(() => import('./components/Footer'));
 const GetQuote = lazy(() => import('./components/GetQuote'));
 const AuthPage = lazy(() => import('./components/AuthPage'));
-const CinematicHome = lazy(() => import('./components/CinematicHome'));
 
 import ProtectedRoute from './components/ProtectedRoute';
 import Breadcrumbs from './components/common/Breadcrumbs';
@@ -47,43 +42,37 @@ const PortalLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user } = useAuth();
 
-  // Subtle warm yellow and red gradient blending into white
   const clientBackgroundStyle = {
-    background: `
+      background: `
           radial-gradient(circle at top left, rgba(255, 235, 133, 0.6) 0%, rgba(253, 251, 247, 0) 50%),
           radial-gradient(circle at top right, rgba(255, 182, 193, 0.5) 0%, rgba(253, 251, 247, 0) 50%),
           #FDFBF7
       `,
-    backgroundRepeat: 'no-repeat',
-    backgroundAttachment: 'fixed'
+      backgroundRepeat: 'no-repeat',
+      backgroundAttachment: 'fixed'
   };
 
   return (
-    <div
-      className="flex h-screen selection:bg-black selection:text-white overflow-hidden font-sans text-stone-900"
-      style={clientBackgroundStyle}
+    <div 
+        className="flex h-screen selection:bg-black selection:text-white overflow-hidden font-sans text-stone-900" 
+        style={clientBackgroundStyle}
     >
-      {/* Sidebar - Hidden on mobile, fixed on desktop */}
       <div className="hidden lg:block w-[320px] shrink-0 sticky top-0 h-screen">
         <ClientSidebar />
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div
+        <div 
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] lg:hidden animate-in fade-in duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      {/* Mobile Sidebar Content */}
       <div className={`fixed inset-y-0 left-0 z-[200] lg:hidden transition-transform duration-500 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <ClientSidebar onClose={() => setIsSidebarOpen(false)} />
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
-        {/* Mobile Header */}
         <div className="lg:hidden">
           <ClientHeader toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
         </div>
@@ -92,27 +81,26 @@ const PortalLayout = () => {
           <div className="mb-8 flex justify-between items-center relative z-50">
             <Breadcrumbs />
 
-            {/* Top Right Profile Widget & Notifications */}
             <div className="hidden sm:flex items-center gap-4">
-              <Link to="/portal/chats" className="w-10 h-10 flex items-center justify-center bg-white/30 backdrop-blur-xl rounded-full border border-white/20 shadow-sm hover:bg-white/50 transition-all text-stone-500 hover:text-luxury-gold">
-                <Bell size={18} />
-              </Link>
-              <Link to="/portal/profile" className="flex items-center gap-3 bg-white/30 backdrop-blur-xl px-4 py-2 rounded-[20px] border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:bg-white/50 transition-all cursor-pointer">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-800 to-black text-[#D4AF37] flex items-center justify-center font-serif text-sm border border-stone-700 shadow-inner">
-                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0) || ''}
-                </div>
-                <div className="text-left pr-2">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-800 leading-tight">
-                    {user ? `${user.firstName} ${user.lastName}` : "Client User"}
-                  </p>
-                  <p className="text-[7px] uppercase tracking-[0.2em] text-stone-500 font-medium">
-                    {user?.email || "Studio Guest"}
-                  </p>
-                </div>
-              </Link>
+                <Link to="/portal/chats" className="w-10 h-10 flex items-center justify-center bg-white/30 backdrop-blur-xl rounded-full border border-white/20 shadow-sm hover:bg-white/50 transition-all text-stone-500 hover:text-luxury-gold">
+                   <Bell size={18} />
+                </Link>
+                <Link to="/portal/profile" className="flex items-center gap-3 bg-white/30 backdrop-blur-xl px-4 py-2 rounded-[20px] border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:bg-white/50 transition-all cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-800 to-black text-[#D4AF37] flex items-center justify-center font-serif text-sm border border-stone-700 shadow-inner">
+                      {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0) || ''}
+                    </div>
+                    <div className="text-left pr-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-800 leading-tight">
+                        {user ? `${user.firstName} ${user.lastName}` : "Client User"}
+                      </p>
+                      <p className="text-[7px] uppercase tracking-[0.2em] text-stone-500 font-medium">
+                        {user?.email || "Studio Guest"}
+                      </p>
+                    </div>
+                </Link>
             </div>
-          </div>
-
+        </div>
+          
           <PageTransition>
             <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl opacity-50">Loading Portal...</div>}>
               <Outlet />
@@ -128,76 +116,53 @@ const PortalLayout = () => {
   );
 };
 
-import { Toaster } from 'react-hot-toast';
-
 function App() {
   const location = useLocation();
-  const useCinematicHome = import.meta.env.VITE_USE_CINEMATIC_HOME === 'true';
 
   return (
-    <div className="font-sans text-[#1C1C1C] bg-[#F7F5F2] min-h-screen selection:bg-black selection:text-white">
+    <div className="font-sans text-stone-900 min-h-screen selection:bg-stone-200 overflow-x-hidden relative">
+      <WaveBackground />
       <Toaster position="top-right" />
       <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl">Loading...</div>}>
         <AnimatePresence mode="wait">
           <Routes location={location}>
-            {/* Main Website Routes */}
             <Route path="/" element={
-              useCinematicHome ? <CinematicHome /> : (
-                <>
-                  <Navbar />
-                  <Hero />
-                  <About />
-                  <Services />
-                  <Gallery />
-                  <Testimonials />
-                  <Contact />
-                  <Footer />
-                </>
-              )
+              <div className="min-h-screen flex flex-col items-center justify-center relative z-10">
+                <h1 className="text-8xl font-serif text-stone-900 mb-6 tracking-tight">Man On Vision</h1>
+                <p className="text-orange-600/80 uppercase tracking-[0.6em] text-xs font-black">Luxury Wedding Artistry</p>
+                <div className="mt-14 flex gap-8">
+                    <Link to="/auth" className="px-10 py-4 bg-white/20 backdrop-blur-xl border border-white/40 text-stone-900 rounded-full hover:bg-white/40 transition-all uppercase tracking-widest text-xs font-bold shadow-xl">Portal</Link>
+                    <Link to="/quote" className="px-10 py-4 bg-stone-900 text-white rounded-full hover:bg-stone-800 transition-all shadow-2xl uppercase tracking-widest text-xs font-bold hover:scale-105 active:scale-95">Book Event</Link>
+                </div>
+              </div>
             } />
-            <Route path="/legacy" element={
-              <>
-                <Navbar />
-                <Hero />
-                <About />
-                <Services />
-                <Gallery />
-                <Testimonials />
-                <Contact />
-                <Footer />
-              </>
-            } />
+
             <Route path="/quote" element={<><Navbar /><GetQuote /><Footer /></>} />
             <Route path="/auth" element={<AuthPage />} />
 
-            {/* Protected Portal Routes (Clients) */}
             <Route element={<ProtectedRoute allowedRoles={['client']} />}>
               <Route path="/portal" element={<PortalLayout />}>
                 <Route index element={<ClientDashboard />} />
                 <Route path="gallery" element={<ClientGallery />} />
-
                 <Route path="chats" element={<Chats />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
             </Route>
 
-            {/* Protected Admin Routes */}
             <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
                 <Route path="crm" element={<AdminCRM />} />
                 <Route path="gallery" element={<AdminSmartGallery />} />
-                <Route path="gallery/:id" element={<AdminClientEvents />} />
+                <Route index path="gallery/:id" element={<AdminClientEvents />} />
                 <Route path="gallery/event/:eventId" element={<AdminDriveGalleryDetail />} />
                 <Route path="finance" element={<AdminFinance />} />
                 <Route path="calendar" element={<AdminCalendarPage />} />
                 <Route path="activity-log" element={<AdminActivityLog />} />
                 <Route path="chats" element={<AdminChats />} />
                 <Route path="users" element={<AdminUserManagement />} />
-
               </Route>
             </Route>
-            {/* Catch-All Route for invalid URLs */}
             <Route path="*" element={<AuthPage />} />
           </Routes>
         </AnimatePresence>
