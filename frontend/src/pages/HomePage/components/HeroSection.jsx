@@ -1,12 +1,15 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import WaveBackground from '../../../components/common/WaveBackground';
+import { useTheme } from '../../../context/ThemeContext';
 
 const HeroSection = () => {
+    const { isDarkMode } = useTheme();
+    
     return (
         <section 
             id="home" 
-            className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-transparent"
+            className={`relative h-screen w-full flex items-center justify-center overflow-hidden transition-colors duration-1000 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}
         >
             {/* Liquid Maze Background */}
             <div className="absolute inset-0 z-0">
@@ -24,10 +27,26 @@ const HeroSection = () => {
                     transition={{ duration: 2, ease: "easeOut" }}
                     className="relative flex items-center justify-center origin-[50%_45%]" // Precise eye focus
                 >
+                    {/* Glow Effect for Dark Mode */}
+                    <AnimatePresence>
+                        {isDarkMode && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1.1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                className="absolute inset-0 bg-orange-500/20 blur-[100px] rounded-full"
+                            />
+                        )}
+                    </AnimatePresence>
+
                     <img 
                         src="/assets/MOV-logo.png" 
                         alt="Man On Vision Logo" 
-                        className="w-[200px] md:w-[450px] h-auto object-contain drop-shadow-[0_0_30px_rgba(249,115,22,0.3)] filter"
+                        className={`w-[200px] md:w-[450px] h-auto object-contain transition-all duration-1000 ${
+                            isDarkMode 
+                            ? 'drop-shadow-[0_0_50px_rgba(249,115,22,0.4)] brightness-110' 
+                            : 'drop-shadow-[0_0_30px_rgba(0,0,0,0.1)]'
+                        } filter`}
                     />
                 </motion.div>
             </div>

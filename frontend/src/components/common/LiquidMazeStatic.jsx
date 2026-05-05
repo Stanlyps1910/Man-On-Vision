@@ -8,7 +8,7 @@ import React, { useRef, useEffect } from 'react';
  * - Extremely slow, almost unnoticeable movement.
  * - Pastel light pink theme.
  */
-const LiquidMazeStatic = ({ 
+const LiquidMazeStatic = ({
     color1 = "#FFF0F5", // Lavender Blush (Very light pink)
     color2 = "#FFE4E1", // Misty Rose (Very light pink)
     bgColor = "#ffffff",
@@ -82,12 +82,12 @@ const LiquidMazeStatic = ({
                 float slowTime = u_time * ${speed.toFixed(6)};
                 
                 float n = snoise(p * ${density.toFixed(2)} + slowTime);
-                n += 0.4 * snoise(p * ${(density * 2).toFixed(2)} - slowTime * 1.5);
+                n += 0.3 * snoise(p * ${(density * 1.5).toFixed(2)} - slowTime * 1.2);
                 
-                float pattern = sin(n * 10.0 + u_time * 0.01); // Minimal automatic pulse
+                float pattern = sin(n * 4.0 + u_time * 0.005); // Larger waves, slower pulse
                 
-                float threshold = 0.05; 
-                float edge = 0.03;      
+                float threshold = 0.12; // Thicker lines
+                float edge = 0.01;      // Sharper, connected lines
                 float mask = smoothstep(threshold - edge, threshold + edge, abs(pattern));
                 
                 vec3 c1 = ${hexToRgb(color1)};
