@@ -1,40 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link as ScrollLink } from 'react-scroll';
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-const logo = "/assets/MOV-logo.png";
-
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { scrollY } = useScroll();
-  const [hidden, setHidden] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    const previous = scrollY.getPrevious();
-    if (latest > previous && latest > 150) {
-      setHidden(true);
-    } else {
-      setHidden(false);
-    }
-  });
-
   const isHomePage = location.pathname === '/';
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (window.scrollY > 50) setScrolled(true);
-      else setScrolled(false);
-    };
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const navLinks = [
     { name: 'Home', to: 'home' },
@@ -47,182 +23,126 @@ const Navbar = () => {
     setIsOpen(false);
     if (!isHomePage) {
       navigate('/');
-      // Small delay to allow navigation to complete before scrolling
       setTimeout(() => {
         const element = document.getElementById(to);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
-        }
+        if (element) element.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     }
   };
 
-  const textColor = scrolled || !isHomePage ? 'text-[#3A3A3A]' : 'text-white';
+  const menuVariants = {
+    closed: {
+      clipPath: "circle(0% at 95% 5%)",
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 40
+      }
+    },
+    opened: {
+      clipPath: "circle(150% at 95% 5%)",
+      transition: {
+        type: "spring",
+        stiffness: 20,
+        restDelta: 2
+      }
+    }
+  };
 
   return (
-    <motion.nav
-      variants={{
-        visible: { y: 0 },
-        hidden: { y: "-100%" },
-      }}
-      animate={hidden ? "hidden" : "visible"}
-      transition={{ duration: 0.35, ease: "easeInOut" }}
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || !isHomePage ? 'bg-[#F2EFEA]/95 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}
-    >
-      <div className={`max-w-7xl mx-auto px-6 flex justify-between items-center transition-colors duration-300 ${textColor}`}>
-        {/* Logo */}
-        <RouterLink to="/" className="cursor-pointer hover:opacity-80 transition flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Man On Vision Logo"
-            style={{
-              height: scrolled || !isHomePage ? "80px" : "160px",
-              width: "auto",
-              background: "transparent",
-              border: "none",
-              boxShadow: "none",
-              padding: 0,
-              margin: 0,
-              objectFit: "contain"
-            }}
-          />
-          <div className="flex flex-col">
-            <span className="text-2xl font-serif font-bold tracking-[0.2em] leading-none">MAN ON VISION</span>
-            <span className="text-[10px] tracking-[0.3em] font-sans uppercase mt-1 opacity-80"> - THE WEDDING ARTIST - </span>
-          </div>
-        </RouterLink>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-10 text-sm tracking-widest font-sans uppercase">
-          {navLinks.map((link) => (
-            isHomePage ? (
-              <ScrollLink
-                key={link.to}
-                to={link.to}
-                smooth={true}
-                duration={700}
-                offset={-80}
-                className="cursor-pointer hover:opacity-70 transition"
-              >
-                {link.name}
-              </ScrollLink>
-            ) : (
-              <button
-                key={link.to}
-                onClick={() => handleNavClick(link.to)}
-                className="cursor-pointer hover:opacity-70 transition uppercase"
-              >
-                {link.name}
-              </button>
-            )
-          ))}
-          {user ? (
-            <>
-              <RouterLink
-                to={user.role === 'admin' ? "/admin" : "/portal"}
-                className="text-sm font-semibold tracking-widest uppercase hover:opacity-70 transition mr-4"
-              >
-                Dashboard
-              </RouterLink>
-              <button
-                onClick={() => {
-                  if (window.confirm("Are you sure you want to sign out?")) {
-                    logout();
-                  }
-                }}
-                className="text-sm font-semibold tracking-widest uppercase hover:opacity-70 transition border-l border-[#3A3A3A]/20 pl-4 mr-4"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <RouterLink
-              to="/auth"
-              className="text-sm font-semibold tracking-widest uppercase hover:opacity-70 transition mr-4"
+    <>
+      {/* Hamburger Toggle (Only visible UI element) */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed top-8 right-8 z-[200] w-12 h-12 flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-stone-900 hover:bg-stone-900 hover:text-white transition-all duration-500 shadow-sm"
+      >
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
             >
-              Sign In
-            </RouterLink>
+              <X size={20} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="menu"
+              initial={{ rotate: 90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: -90, opacity: 0 }}
+            >
+              <Menu size={20} />
+            </motion.div>
           )}
-          <RouterLink
-            to="/quote"
-            className={`${scrolled || !isHomePage ? 'bg-[#1C1C1C] text-white' : 'bg-white text-[#1C1C1C]'} px-8 py-3 rounded-full tracking-widest text-xs uppercase hover:bg-gray-800 hover:text-white transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg`}
-          >
-            Get a Quote
-          </RouterLink>
-        </div>
+        </AnimatePresence>
+      </button>
 
-        {/* Mobile Button */}
-        <button className={`md:hidden transition-colors duration-300 ${textColor}`} onClick={() => setIsOpen(!isOpen)}>
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-[#F2EFEA] border-t border-gray-200 shadow-lg">
-          <div className="flex flex-col items-center py-12 space-y-8">
-            {navLinks.map((link) => (
-              isHomePage ? (
+      {/* Expanded Menu Overlay */}
+      <motion.div
+        initial="closed"
+        animate={isOpen ? "opened" : "closed"}
+        variants={menuVariants}
+        className="fixed inset-0 z-[150] bg-stone-950 text-white flex flex-col items-center justify-center"
+      >
+        <div className="flex flex-col items-center space-y-8 md:space-y-12">
+          {navLinks.map((link, i) => (
+            <motion.div
+              key={link.to}
+              initial={{ y: 50, opacity: 0 }}
+              animate={isOpen ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
+              transition={{ delay: 0.1 * i + 0.2 }}
+            >
+              {isHomePage ? (
                 <ScrollLink
-                  key={link.to}
                   to={link.to}
                   smooth={true}
-                  offset={-80}
+                  duration={1000}
                   onClick={() => setIsOpen(false)}
-                  className="text-lg font-serif cursor-pointer hover:text-gray-600 tracking-wide"
+                  className="text-4xl md:text-7xl font-serif italic tracking-tighter hover:text-orange-600 transition-colors cursor-pointer block"
                 >
                   {link.name}
                 </ScrollLink>
               ) : (
                 <button
-                  key={link.to}
                   onClick={() => handleNavClick(link.to)}
-                  className="text-lg font-serif cursor-pointer hover:text-gray-600 tracking-wide uppercase"
+                  className="text-4xl md:text-7xl font-serif italic tracking-tighter hover:text-orange-600 transition-colors block"
                 >
                   {link.name}
                 </button>
-              )
-            ))}
-            {user ? (
-              <>
-                <RouterLink
-                  to={user.role === 'admin' ? "/admin" : "/portal"}
-                  onClick={() => setIsOpen(false)}
-                  className="text-lg font-serif cursor-pointer hover:text-gray-600 tracking-wide uppercase"
-                >
-                  Dashboard
-                </RouterLink>
-                <button
-                  onClick={() => {
-                    if (window.confirm("Are you sure you want to sign out?")) {
-                      logout();
-                    }
-                  }}
-                  className="text-lg font-serif cursor-pointer hover:text-red-600 tracking-wide uppercase"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <RouterLink
-                to="/auth"
+              )}
+            </motion.div>
+          ))}
+
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={isOpen ? { y: 0, opacity: 1 } : { y: 50, opacity: 0 }}
+            transition={{ delay: 0.6 }}
+            className="pt-12 flex flex-col items-center gap-6"
+          >
+            <RouterLink 
+                to="/quote" 
                 onClick={() => setIsOpen(false)}
-                className="text-lg font-serif cursor-pointer hover:text-gray-600 tracking-wide uppercase"
-              >
-                Sign In
-              </RouterLink>
-            )}
-            <RouterLink
-              to="/quote"
-              onClick={() => setIsOpen(false)}
-              className="bg-[#1C1C1C] text-white px-8 py-3 rounded-full tracking-widest text-xs uppercase hover:bg-gray-800 transition-all duration-300 hover:scale-105 active:scale-95 shadow-md"
+                className="px-12 py-4 bg-orange-600 text-white rounded-full text-xs font-bold tracking-[0.2em] uppercase hover:bg-white hover:text-stone-950 transition-all"
             >
-              Get a Quote
+                Start Production
             </RouterLink>
-          </div>
+            
+            {user ? (
+                <button onClick={() => logout()} className="text-[10px] uppercase tracking-widest opacity-50 hover:opacity-100">Sign Out</button>
+            ) : (
+                <RouterLink to="/auth" onClick={() => setIsOpen(false)} className="text-[10px] uppercase tracking-widest opacity-50 hover:opacity-100">Portal Access</RouterLink>
+            )}
+          </motion.div>
         </div>
-      )}
-    </motion.nav>
+
+        {/* Decorative background text */}
+        <div className="absolute bottom-12 left-12 text-[10vw] font-serif font-black opacity-[0.02] select-none pointer-events-none">
+          VISION
+        </div>
+      </motion.div>
+    </>
   );
 };
 

@@ -1,15 +1,22 @@
 import React, { useRef, useEffect } from 'react';
 
 /**
- * WaveBackground - Sharp Minimalist Liquid Maze
- * High-performance WebGL implementation.
- * Features ultra-thin, crisp lines for a sharp and modern aesthetic.
- * Supports a dynamic 'twirl' uniform for hypnotic transitions.
+ * LiquidMazeStatic - Ultra-Thin Continuous Topographic Background
+ * 
+ * Features:
+ * - Solid, continuous architectural lines.
+ * - Extremely slow, almost unnoticeable movement.
+ * - Pastel light pink theme.
  */
-const WaveBackground = () => {
+const LiquidMazeStatic = ({ 
+    color1 = "#FFF0F5", // Lavender Blush (Very light pink)
+    color2 = "#FFE4E1", // Misty Rose (Very light pink)
+    bgColor = "#ffffff",
+    opacity = 1.0,
+    speed = 0.005,      // Extremely slow, almost static
+    density = 0.8
+}) => {
     const canvasRef = useRef(null);
-    const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
-    const twirlRef = useRef(0);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -18,22 +25,11 @@ const WaveBackground = () => {
         const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
         if (!gl) return;
 
-        const updateCoords = (x, y) => {
-            mouseRef.current.targetX = (x / window.innerWidth) * 2 - 1;
-            mouseRef.current.targetY = -((y / window.innerHeight) * 2 - 1);
-        };
-
-        const handleMouseMove = (e) => updateCoords(e.clientX, e.clientY);
-        const handleTouchMove = (e) => {
-            if (e.touches[0]) updateCoords(e.touches[0].clientX, e.touches[0].clientY);
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('touchmove', handleTouchMove, { passive: true });
-
-        // Update twirl from a global window property (set by GSAP)
-        const updateTwirl = () => {
-            twirlRef.current = window.heroTwirl || 0;
+        const hexToRgb = (hex) => {
+            const r = parseInt(hex.slice(1, 3), 16) / 255;
+            const g = parseInt(hex.slice(3, 5), 16) / 255;
+            const b = parseInt(hex.slice(5, 7), 16) / 255;
+            return `vec3(${r.toFixed(3)}, ${g.toFixed(3)}, ${b.toFixed(3)})`;
         };
 
         const vsSource = `
@@ -47,8 +43,6 @@ const WaveBackground = () => {
             precision highp float;
             uniform float u_time;
             uniform vec2 u_resolution;
-            uniform vec2 u_mouse;
-            uniform float u_twirl;
 
             vec3 permute(vec3 x) { return mod(((x*34.0)+1.0)*x, 289.0); }
 
@@ -82,46 +76,28 @@ const WaveBackground = () => {
             void main() {
                 vec2 uv = gl_FragCoord.xy / u_resolution.xy;
                 float aspect = u_resolution.x / u_resolution.y;
-                
                 vec2 p = (uv * 2.0) - 1.0;
                 p.x *= aspect;
-                
-                // --- HYPNOTIC TWIRL ---
-                float angle = u_twirl * exp(-length(p) * 1.5);
-                float s = sin(angle);
-                float c = cos(angle);
-                p = vec2(p.x * c - p.y * s, p.x * s + p.y * c);
 
-                vec2 m = u_mouse;
-                m.x *= aspect;
+                float slowTime = u_time * ${speed.toFixed(6)};
                 
-                float dist = length(p - m);
-                float strength = 0.22; 
-                float radius = 0.6;
-                vec2 distortion = normalize(p - m) * strength * exp(-dist / radius);
-                vec2 noiseP = p + distortion;
+                float n = snoise(p * ${density.toFixed(2)} + slowTime);
+                n += 0.4 * snoise(p * ${(density * 2).toFixed(2)} - slowTime * 1.5);
                 
-                float slowTime = u_time * 0.025; 
-                float n = snoise(noiseP * 0.8 + slowTime * 0.2);
-                n += 0.35 * snoise(noiseP * 1.6 - slowTime * 0.4);
+                float pattern = sin(n * 10.0 + u_time * 0.01); // Minimal automatic pulse
                 
-                float pattern = sin(n * 9.0 + u_time * 0.1); 
-                
-                float threshold = 0.28; 
-                float edge = 0.08; 
+                float threshold = 0.05; 
+                float edge = 0.03;      
                 float mask = smoothstep(threshold - edge, threshold + edge, abs(pattern));
                 
-                float centerDist = length(p);
-                float centralMask = smoothstep(0.4, 2.0, centerDist);
-                mask = mix(1.0, mask, centralMask);
+                vec3 c1 = ${hexToRgb(color1)};
+                vec3 c2 = ${hexToRgb(color2)};
+                vec3 bg = ${hexToRgb(bgColor)};
                 
-                vec3 colorPink = vec3(1.0, 0.3, 0.55);   
-                vec3 colorOrange = vec3(1.0, 0.7, 0.3);   
-                vec3 lineColor = mix(colorPink, colorOrange, uv.x * 0.8 + uv.y * 0.4);
-                vec3 bgColor = vec3(1.0, 1.0, 0.99);
-                
-                vec3 finalColor = mix(lineColor, bgColor, mask);
-                gl_FragColor = vec4(finalColor, 1.0);
+                vec3 lineColor = mix(c1, c2, uv.x);
+                vec3 finalColor = mix(lineColor, bg, mask);
+
+                gl_FragColor = vec4(finalColor, ${opacity.toFixed(2)});
             }
         `;
 
@@ -147,15 +123,11 @@ const WaveBackground = () => {
 
         const timeLoc = gl.getUniformLocation(program, 'u_time');
         const resLoc = gl.getUniformLocation(program, 'u_resolution');
-        const mouseLoc = gl.getUniformLocation(program, 'u_mouse');
-        const twirlLoc = gl.getUniformLocation(program, 'u_twirl');
 
         const resize = () => {
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            canvas.style.width = '100vw';
-            canvas.style.height = '100vh';
+            canvas.width = canvas.clientWidth * dpr;
+            canvas.height = canvas.clientHeight * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
         };
 
@@ -163,18 +135,9 @@ const WaveBackground = () => {
         resize();
 
         let animationFrameId;
-        const currentMouse = { x: 0, y: 0 };
-
         const render = (time) => {
-            updateTwirl();
-            currentMouse.x += (mouseRef.current.targetX - currentMouse.x) * 0.06;
-            currentMouse.y += (mouseRef.current.targetY - currentMouse.y) * 0.06;
-
             gl.uniform1f(timeLoc, time * 0.001);
             gl.uniform2f(resLoc, canvas.width, canvas.height);
-            gl.uniform2f(mouseLoc, currentMouse.x, currentMouse.y);
-            gl.uniform1f(twirlLoc, twirlRef.current);
-
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             animationFrameId = requestAnimationFrame(render);
         };
@@ -182,19 +145,17 @@ const WaveBackground = () => {
 
         return () => {
             window.removeEventListener('resize', resize);
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('touchmove', handleTouchMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [color1, color2, bgColor, opacity, speed, density]);
 
     return (
         <canvas
             ref={canvasRef}
-            id="hero-canvas"
-            className="fixed top-0 left-0 -z-10 block pointer-events-none"
+            className="w-full h-full block"
+            style={{ position: 'absolute', top: 0, left: 0, zIndex: -1 }}
         />
     );
 };
 
-export default WaveBackground;
+export default LiquidMazeStatic;
