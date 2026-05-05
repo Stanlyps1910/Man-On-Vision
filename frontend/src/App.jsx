@@ -49,19 +49,19 @@ const PortalLayout = () => {
 
   // Subtle warm yellow and red gradient blending into white
   const clientBackgroundStyle = {
-      background: `
+    background: `
           radial-gradient(circle at top left, rgba(255, 235, 133, 0.6) 0%, rgba(253, 251, 247, 0) 50%),
           radial-gradient(circle at top right, rgba(255, 182, 193, 0.5) 0%, rgba(253, 251, 247, 0) 50%),
           #FDFBF7
       `,
-      backgroundRepeat: 'no-repeat',
-      backgroundAttachment: 'fixed'
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed'
   };
 
   return (
-    <div 
-        className="flex h-screen selection:bg-black selection:text-white overflow-hidden font-sans text-stone-900" 
-        style={clientBackgroundStyle}
+    <div
+      className="flex h-screen selection:bg-black selection:text-white overflow-hidden font-sans text-stone-900"
+      style={clientBackgroundStyle}
     >
       {/* Sidebar - Hidden on mobile, fixed on desktop */}
       <div className="hidden lg:block w-[320px] shrink-0 sticky top-0 h-screen">
@@ -70,7 +70,7 @@ const PortalLayout = () => {
 
       {/* Mobile Sidebar Overlay */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[150] lg:hidden animate-in fade-in duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
@@ -94,25 +94,25 @@ const PortalLayout = () => {
 
             {/* Top Right Profile Widget & Notifications */}
             <div className="hidden sm:flex items-center gap-4">
-                <Link to="/portal/chats" className="w-10 h-10 flex items-center justify-center bg-white/30 backdrop-blur-xl rounded-full border border-white/20 shadow-sm hover:bg-white/50 transition-all text-stone-500 hover:text-luxury-gold">
-                   <Bell size={18} />
-                </Link>
-                <Link to="/portal/profile" className="flex items-center gap-3 bg-white/30 backdrop-blur-xl px-4 py-2 rounded-[20px] border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:bg-white/50 transition-all cursor-pointer">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-800 to-black text-[#D4AF37] flex items-center justify-center font-serif text-sm border border-stone-700 shadow-inner">
-                      {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0) || ''}
-                    </div>
-                    <div className="text-left pr-2">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-800 leading-tight">
-                        {user ? `${user.firstName} ${user.lastName}` : "Client User"}
-                      </p>
-                      <p className="text-[7px] uppercase tracking-[0.2em] text-stone-500 font-medium">
-                        {user?.email || "Studio Guest"}
-                      </p>
-                    </div>
-                </Link>
+              <Link to="/portal/chats" className="w-10 h-10 flex items-center justify-center bg-white/30 backdrop-blur-xl rounded-full border border-white/20 shadow-sm hover:bg-white/50 transition-all text-stone-500 hover:text-luxury-gold">
+                <Bell size={18} />
+              </Link>
+              <Link to="/portal/profile" className="flex items-center gap-3 bg-white/30 backdrop-blur-xl px-4 py-2 rounded-[20px] border border-white/20 shadow-[0_4px_15px_rgba(0,0,0,0.03)] hover:bg-white/50 transition-all cursor-pointer">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-stone-800 to-black text-[#D4AF37] flex items-center justify-center font-serif text-sm border border-stone-700 shadow-inner">
+                  {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0) || ''}
+                </div>
+                <div className="text-left pr-2">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-stone-800 leading-tight">
+                    {user ? `${user.firstName} ${user.lastName}` : "Client User"}
+                  </p>
+                  <p className="text-[7px] uppercase tracking-[0.2em] text-stone-500 font-medium">
+                    {user?.email || "Studio Guest"}
+                  </p>
+                </div>
+              </Link>
             </div>
-        </div>
-          
+          </div>
+
           <PageTransition>
             <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl opacity-50">Loading Portal...</div>}>
               <Outlet />
@@ -156,16 +156,16 @@ function App() {
               )
             } />
             <Route path="/legacy" element={
-                <>
-                  <Navbar />
-                  <Hero />
-                  <About />
-                  <Services />
-                  <Gallery />
-                  <Testimonials />
-                  <Contact />
-                  <Footer />
-                </>
+              <>
+                <Navbar />
+                <Hero />
+                <About />
+                <Services />
+                <Gallery />
+                <Testimonials />
+                <Contact />
+                <Footer />
+              </>
             } />
             <Route path="/quote" element={<><Navbar /><GetQuote /><Footer /></>} />
             <Route path="/auth" element={<AuthPage />} />
@@ -175,6 +175,7 @@ function App() {
               <Route path="/portal" element={<PortalLayout />}>
                 <Route index element={<ClientDashboard />} />
                 <Route path="gallery" element={<ClientGallery />} />
+
                 <Route path="chats" element={<Chats />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
@@ -193,6 +194,7 @@ function App() {
                 <Route path="activity-log" element={<AdminActivityLog />} />
                 <Route path="chats" element={<AdminChats />} />
                 <Route path="users" element={<AdminUserManagement />} />
+
               </Route>
             </Route>
             {/* Catch-All Route for invalid URLs */}
