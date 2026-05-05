@@ -84,7 +84,7 @@ const Navbar = () => {
         initial="closed"
         animate={isOpen ? "opened" : "closed"}
         variants={menuVariants}
-        className="fixed inset-0 z-[150] bg-stone-950 text-white flex flex-col items-center justify-center"
+        className="fixed inset-0 z-[150] bg-stone-950 text-white flex flex-col items-center justify-center py-20 overflow-y-auto"
       >
         <div className="flex flex-col items-center space-y-8 md:space-y-12">
           {navLinks.map((link, i) => (

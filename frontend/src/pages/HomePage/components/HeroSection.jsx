@@ -33,7 +33,7 @@ const HeroSection = () => {
             </div>
 
             {/* Scroll Indicator */}
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-10">
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 opacity-30">
                 <div className="w-[1px] h-12 bg-stone-900" />
             </div>
         </section>

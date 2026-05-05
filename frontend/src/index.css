@@ -17,6 +17,10 @@
   .font-sans {
     font-family: var(--font-sans);
   }
+
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
 :root {
