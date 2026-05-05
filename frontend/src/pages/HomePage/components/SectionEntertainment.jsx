@@ -1,18 +1,11 @@
-import LiquidMazeStatic from '../../../components/common/LiquidMazeStatic';
 import { useTheme } from '../../../context/ThemeContext';
 
 const SectionEntertainment = () => {
     const { isDarkMode } = useTheme();
     
     return (
-        <section className={`scroll-section min-h-screen w-full flex items-center justify-center overflow-hidden relative py-20 md:py-0 transition-colors duration-1000 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
-            <LiquidMazeStatic 
-                color1="#ff5a96" 
-                color2="#ffb040" 
-                bgColor={isDarkMode ? "#0c0a09" : "#fff5f2"} 
-                density={0.2} 
-                speed={0.005} 
-            />
+        <section className={`scroll-section min-h-screen w-full flex items-center justify-center overflow-hidden relative py-20 md:py-0 transition-colors duration-1000 bg-transparent`}>
+            {/* Global background used */}
 
             {/* Background Parallax Element */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">

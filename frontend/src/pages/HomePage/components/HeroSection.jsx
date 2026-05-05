@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WaveBackground from '../../../components/common/WaveBackground';
 import { useTheme } from '../../../context/ThemeContext';
+
+import WaveBackground from '../../../components/common/WaveBackground';
 
 const HeroSection = () => {
     const { isDarkMode } = useTheme();
@@ -9,12 +10,14 @@ const HeroSection = () => {
     return (
         <section 
             id="home" 
-            className={`relative h-screen w-full flex items-center justify-center overflow-hidden transition-colors duration-1000 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}
+            className={`relative h-screen w-full flex items-center justify-center overflow-hidden transition-colors duration-1000 bg-transparent`}
         >
-            {/* Liquid Maze Background */}
+            {/* Local Hero Background - Fades out on scroll to reveal global LiquidMaze */}
             <div className="absolute inset-0 z-0">
                 <WaveBackground />
             </div>
+
+            {/* Content Container */}
 
             {/* Content Container */}
             <div className="relative z-10 flex flex-col items-center justify-center">

@@ -1,18 +1,11 @@
-import LiquidMazeStatic from '../../../components/common/LiquidMazeStatic';
 import { useTheme } from '../../../context/ThemeContext';
 
 const SectionShowcase = () => {
     const { isDarkMode } = useTheme();
     
     return (
-        <section id="gallery" className={`h-screen w-full overflow-hidden relative transition-colors duration-1000 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
-            <LiquidMazeStatic 
-                color1="#ffb040" 
-                color2="#ff5a96" 
-                bgColor={isDarkMode ? "#0c0a09" : "#fff5f2"} 
-                density={0.2} 
-                speed={0.005} 
-            />
+        <section id="gallery" className={`scroll-section h-screen w-full overflow-hidden relative transition-colors duration-1000 bg-transparent`}>
+            {/* Global background used */}
             
             <div className="absolute top-12 left-6 md:top-20 md:left-20 z-10">
                 <h2 className={`text-3xl md:text-6xl font-serif tracking-tighter italic transition-colors duration-1000 ${isDarkMode ? 'text-white' : 'text-stone-950'}`}>Global Showcase</h2>

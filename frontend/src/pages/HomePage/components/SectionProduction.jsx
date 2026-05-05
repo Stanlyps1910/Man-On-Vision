@@ -1,21 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import LiquidMazeStatic from '../../../components/common/LiquidMazeStatic';
 import { useTheme } from '../../../context/ThemeContext';
 
 const SectionProduction = () => {
     const { isDarkMode } = useTheme();
     
     return (
-        <section id="services" className={`scroll-section min-h-screen w-full flex items-center justify-center relative overflow-hidden py-24 md:py-0 transition-colors duration-1000 ${isDarkMode ? 'bg-stone-950' : 'bg-white'}`}>
-            {/* 2nd Background: Dark Mode Variation */}
-            <LiquidMazeStatic 
-                color1="#ff5a96" 
-                color2="#ffb040" 
-                bgColor={isDarkMode ? "#0c0a09" : "#fff5f2"} 
-                density={0.2} 
-                speed={0.005} 
-            />
+        <section id="services" className={`scroll-section min-h-screen w-full flex items-center justify-center relative overflow-hidden py-24 md:py-0 transition-colors duration-1000 bg-transparent`}>
+            {/* Global background used */}
 
             <div className="max-w-6xl w-full px-6 md:px-10 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 relative z-10">
                 {[
