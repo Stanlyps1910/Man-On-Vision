@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Plus, FolderOpen, Calendar, MoreVertical, Loader2, ArrowLeft, Image as ImageIcon, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +13,7 @@ import EditEventModal from "../components/gallery/EditEventModal";
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function ClientEvents() {
+  const { token: authContextToken } = useAuth();
   const { id: clientId } = useParams();
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
@@ -27,7 +29,7 @@ export default function ClientEvents() {
   const fetchClientAndEvents = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = authContextToken || localStorage.getItem('token');
       
       // Fetch Client Info
       const clientRes = await axios.get(`${API_BASE_URL}/api/drive-gallery/${clientId}`, {
@@ -52,7 +54,7 @@ export default function ClientEvents() {
     if (!window.confirm("Remove this event?")) return;
     
     try {
-      const token = localStorage.getItem('token');
+      const token = authContextToken || localStorage.getItem('token');
       await axios.delete(`${API_BASE_URL}/api/drive-gallery/events/${eventId}`, {
         headers: { 'x-auth-token': token }
       });

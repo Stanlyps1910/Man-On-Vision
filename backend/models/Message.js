@@ -31,6 +31,10 @@ const MessageSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    editedAt: {
+        type: Date,
+        default: null
+    },
     isDeletedEveryone: {
         type: Boolean,
         default: false

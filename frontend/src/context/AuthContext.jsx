@@ -34,12 +34,11 @@ export const AuthProvider = ({ children }) => {
 
     const login = (userData, userToken) => {
         const sanitizedToken = cleanToken(userToken);
+        console.log('--- [AUTH] --- Login successful, updating state ---');
         setToken(sanitizedToken);
         setUser(userData);
         if (sanitizedToken) localStorage.setItem('token', sanitizedToken);
         localStorage.setItem('user', JSON.stringify(userData));
-        if (userData.role === 'admin') navigate('/admin');
-        else navigate('/portal');
     };
 
     const logout = () => {
@@ -58,7 +57,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const updateUser = (userData) => {
-        const newUser = { ...user, ...userData };
+        if (!userData) return;
+        const newUser = { ...(user || {}), ...userData };
         setUser(newUser);
         localStorage.setItem('user', JSON.stringify(newUser));
     };

@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_URL || '';
+import API_BASE_URL from '../../utils/apiConfig';
 
 const cleanToken = (raw) => {
   if (!raw || typeof raw !== 'string') return null;
@@ -15,7 +14,7 @@ export const fetchUnreadCounts = createAsyncThunk(
     const token = cleanToken(localStorage.getItem('token'));
     if (!token) return { count: 0 };
     try {
-      const res = await axios.get(`${API_URL}/api/chats/unread-summary`, {
+      const res = await axios.get(`${API_BASE_URL}/api/chats/unread-summary`, {
         headers: {
           'x-auth-token': token,
           'Authorization': `Bearer ${token}`
@@ -35,7 +34,7 @@ export const fetchClientUnreadCounts = createAsyncThunk(
     const token = cleanToken(localStorage.getItem('token'));
     if (!token) return { count: 0 };
     try {
-      const res = await axios.get(`${API_URL}/api/chats/unread`, {
+      const res = await axios.get(`${API_BASE_URL}/api/chats/unread`, {
         headers: {
           'x-auth-token': token,
           'Authorization': `Bearer ${token}`

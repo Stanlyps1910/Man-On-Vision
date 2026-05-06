@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { X, User, Mail, Phone, Calendar, Tag, Save, MapPin, Clock, Loader2 } from "lucide-react";
+import { useAuth } from "../../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 export default function LeadForm({ onClose, onLeadAdded, initialData = null }) {
-    const token = localStorage.getItem('token');
+    const { token: authContextToken } = useAuth();
+    const token = authContextToken || localStorage.getItem('token');
     const authHeader = token ? { headers: { 'x-auth-token': token } } : {};
     const [formData, setFormData] = useState(initialData || {
         name: "",

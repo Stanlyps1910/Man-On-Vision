@@ -10,7 +10,7 @@ import API_BASE_URL from "../../../utils/apiConfig";
 
 const Topbar = memo(function Topbar({ onMenuClick, isVisibleProp }) {
     const navigate = useNavigate();
-    const { user: adminProfile, logout, updateUser } = useAuth();
+    const { user: adminProfile, token: authContextToken, logout, updateUser } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
     
     // Premium Scroll Behavior State
@@ -78,10 +78,9 @@ const Topbar = memo(function Topbar({ onMenuClick, isVisibleProp }) {
         role: adminProfile?.role === 'admin' ? "Admin Registry" : (adminProfile?.role || "Staff")
     };
 
-    // --- Notifications Logic ---
     const fetchNotifications = async () => {
         try {
-            const token = localStorage.getItem("token");
+            const token = authContextToken || localStorage.getItem("token");
             if (!token) return;
             const res = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/notifications`, {
                 headers: { Authorization: `Bearer ${token}` }

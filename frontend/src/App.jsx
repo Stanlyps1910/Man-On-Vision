@@ -1,5 +1,5 @@
-import { Routes, Route, useLocation, Outlet, Link } from 'react-router-dom';
-import { Suspense, lazy, useState } from 'react';
+import { Routes, Route, useLocation, Outlet, Link, Navigate } from 'react-router-dom';
+import { Suspense, lazy, useState, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { Bell } from 'lucide-react';
@@ -118,6 +118,7 @@ const PortalLayout = () => {
 function App() {
   const location = useLocation();
   const { isDarkMode } = useTheme();
+  const routeKey = useMemo(() => location.pathname, [location.pathname]);
 
   return (
     <LenisProvider>
@@ -129,7 +130,7 @@ function App() {
         <Toaster position="top-right" />
         <Suspense fallback={<div className="flex h-screen w-full items-center justify-center text-xl font-serif">MAN ON VISION</div>}>
           <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
+            <Routes location={location} key={routeKey}>
               <Route path="/" element={<HomePage />} />
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/quote" element={<GetQuote />} />
@@ -148,7 +149,7 @@ function App() {
                   <Route index element={<AdminDashboard />} />
                   <Route path="crm" element={<AdminCRM />} />
                   <Route path="gallery" element={<AdminSmartGallery />} />
-                  <Route index path="gallery/:id" element={<AdminClientEvents />} />
+                  <Route path="gallery/:id" element={<AdminClientEvents />} />
                   <Route path="gallery/event/:eventId" element={<AdminDriveGalleryDetail />} />
                   <Route path="finance" element={<AdminFinance />} />
                   <Route path="calendar" element={<AdminCalendarPage />} />
@@ -157,7 +158,7 @@ function App() {
                   <Route path="users" element={<AdminUserManagement />} />
                 </Route>
               </Route>
-              <Route path="*" element={<AuthPage />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </AnimatePresence>
         </Suspense>
@@ -165,5 +166,15 @@ function App() {
     </LenisProvider>
   );
 }
+
+const NotFound = () => (
+  <div className="flex flex-col items-center justify-center min-h-screen bg-stone-950 text-white">
+    <h1 className="text-8xl font-serif text-luxury-gold">404</h1>
+    <p className="text-lg text-stone-400 mt-4">Page not found</p>
+    <Link to="/" className="mt-8 px-8 py-3 bg-luxury-gold text-stone-900 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-white transition-colors">
+      Return Home
+    </Link>
+  </div>
+);
 
 export default App;

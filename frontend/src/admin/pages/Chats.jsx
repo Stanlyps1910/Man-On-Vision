@@ -380,7 +380,7 @@ export default function Chats() {
     setMessages(prev => [...prev, optimisticMsg]);
     setNewMessage(""); setReplyingTo(null); setAttachmentsPreview(null); setShowEmojiPicker(false);
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       const res = await axios.post(`${API_URL}/api/chats`,
         { text: optimisticMsg.text, recipient: targetUserId, messageType: optimisticMsg.messageType, attachments: optimisticMsg.attachments, replyTo: optimisticMsg.replyTo?._id },
         { headers: { "x-auth-token": token } }
@@ -412,7 +412,7 @@ export default function Chats() {
     const formData = new FormData();
     formData.append('file', file);
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       // Use the newly created /upload endpoint in chatRoutes.js
       const uploadRes = await axios.post(`${API_URL}/api/chats/upload`, formData, {
         headers: {
@@ -434,7 +434,7 @@ export default function Chats() {
 
   const handleReact = async (messageId, emoji) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       const res = await axios.post(`${API_URL}/api/chats/react/${messageId}`, { emoji }, { headers: { "x-auth-token": token } });
       setMessages(prev => prev.map(m => m._id === messageId ? { ...m, reactions: res.data } : m));
       setActiveMenuId(null);
@@ -443,7 +443,7 @@ export default function Chats() {
 
   const handleDelete = async (messageId, mode) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       await axios.delete(`${API_URL}/api/chats/${messageId}/${mode}`, { headers: { "x-auth-token": token } });
       if (mode === 'everyone') {
         setMessages(prev => prev.map(m => m._id === messageId ? { ...m, text: 'This transmission redacted', isDeletedEveryone: true, attachments: [] } : m));
@@ -455,7 +455,7 @@ export default function Chats() {
 
   const handleClear = async (userId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       await axios.post(`${API_URL}/api/chats/clear/${userId}`, {}, { headers: { "x-auth-token": token } });
       
       const now = Date.now();
@@ -479,7 +479,7 @@ export default function Chats() {
 
   const handleEditSave = async (messageId) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       const res = await axios.patch(`${API_URL}/api/chats/${messageId}`, { text: editText }, { headers: { "x-auth-token": token } });
       setMessages(prev => prev.map(m => m._id === messageId ? res.data : m));
       setEditingMessage(null);

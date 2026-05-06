@@ -4,7 +4,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchClientUnreadCounts, setClientUnreadCount, handleRoomUpdate } from '../../store/slices/chatSlice';
 import { motion } from "framer-motion";
 import {
-  Heart,
   Home,
   Image,
   MessageSquare,
@@ -13,10 +12,10 @@ import {
   X,
   Bell,
   User,
-  Gamepad2
 } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
+import API_BASE_URL from "../../utils/apiConfig";
 const logo = "/assets/MOV-logo.png";
 
 
@@ -27,25 +26,20 @@ export default function ClientSidebar({ onClose }) {
   const unreadCount = useSelector(state => state.chat.clientUnreadCount);
   const socketRef = useRef(null);
 
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const userId = user?.id || user?._id;
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to sign out safely?")) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      navigate("/");
+      logout();
     }
   };
-
-  const locationRef = useRef(location.pathname);
-  useEffect(() => { locationRef.current = location.pathname; }, [location.pathname]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (userId && token) {
-      const socket = io(import.meta.env.VITE_API_URL || "", {
+      const socket = io(API_BASE_URL, {
         auth: { token },
         reconnection: true
       });
@@ -63,7 +57,11 @@ export default function ClientSidebar({ onClose }) {
         }
       });
 
-      return () => socket.disconnect();
+      return () => {
+        socket.off("room_updated");
+        socket.off("chat_seen");
+        socket.disconnect();
+      };
     }
   }, [userId]);
 

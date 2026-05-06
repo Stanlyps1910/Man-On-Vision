@@ -6,10 +6,12 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function UserManagement() {
+  const { token: authContextToken } = useAuth();
   const [users, setUsers] = useState([]);
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ export default function UserManagement() {
     setVisiblePasswords(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const token = localStorage.getItem('token');
+  const token = authContextToken || localStorage.getItem('token');
   const authHeader = { headers: { 'x-auth-token': token } };
 
   useEffect(() => {

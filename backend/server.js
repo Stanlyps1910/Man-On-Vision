@@ -1,15 +1,11 @@
-const express = require('express'); // Env refresh
+const express = require('express');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-let compression;
-try {
-    compression = require('compression');
-} catch (error) {
-    console.warn('⚠️ Performance warning: `compression` module not found. Run `npm install compression` in the backend directory.');
-}
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const User = require('./models/User');
@@ -29,10 +25,13 @@ const auth = require('./middleware/auth');
 const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
-app.use(compression()); // Compress all responses
+app.use(compression());
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
-    cors: { origin: "*", methods: ["GET", "POST", "PATCH"] }
+    cors: {
+        origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : "*",
+        methods: ["GET", "POST", "PATCH"]
+    }
 });
 
 // Tracks online users for WhatsApp-style ticks
@@ -42,7 +41,22 @@ app.set('onlineUsers', onlineUsers);
 // CRITICAL: Attach io instance so routes can access it for real-time broadcasts
 app.set('io', io);
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+// Rate limiting
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', apiLimiter);
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Too many auth attempts, please try again later.' }
+});
+app.use('/api/auth/', authLimiter);
 const allowedOrigins = [
     process.env.FRONTEND_URL ? process.env.FRONTEND_URL.replace(/\/$/, "") : null
 ].filter(Boolean);
@@ -83,28 +97,12 @@ io.on('connection', (socket) => {
     socket.on('join_chat', (roomId) => {
         socket.join(roomId);
         
-        // Track online status for delivery ticks
         if (!onlineUsers.has(roomId)) {
             onlineUsers.set(roomId, new Set());
         }
         onlineUsers.get(roomId).add(socket.id);
         
-        // Broadcast that this user is online so pending messages can be marked delivered
         io.emit('user_online', { userId: roomId });
-    });
-
-    socket.on('disconnect', () => {
-        // Remove from online tracking
-        for (let [userId, sockets] of onlineUsers.entries()) {
-            if (sockets.has(socket.id)) {
-                sockets.delete(socket.id);
-                if (sockets.size === 0) {
-                    onlineUsers.delete(userId);
-                    io.emit('user_offline', { userId });
-                }
-                break;
-            }
-        }
     });
 
     socket.on('typing_start', (data) => {
@@ -125,12 +123,10 @@ io.on('connection', (socket) => {
 
     socket.on('mark_read', async (data) => {
         try {
-            const { roomId, readerType } = data; // roomId is the userId, readerType is 'admin' or 'user'
+            const { roomId, readerType } = data;
             const ChatRoom = require('./models/ChatRoom');
             const Message = require('./models/Message');
 
-            // 1. Mark all messages as seen in DB
-            const adminIds = ['admin', 'hardcoded-admin-id']; // Simplified for socket logic
             if (readerType === 'admin') {
                 await Message.updateMany({ sender: roomId, seen: false }, { $set: { seen: true, status: 'seen' } });
                 await ChatRoom.findOneAndUpdate({ userId: roomId }, { $set: { unreadCountAdmin: 0 } });
@@ -139,17 +135,14 @@ io.on('connection', (socket) => {
                 await ChatRoom.findOneAndUpdate({ userId: roomId }, { $set: { unreadCountUser: 0 } });
             }
 
-            // 2. Fetch updated counts
             const updatedRoom = await ChatRoom.findOne({ userId: roomId });
 
-            // 3. Emit room_updated to sync everyone
             io.emit('room_updated', {
                 roomId,
                 unreadCountAdmin: updatedRoom?.unreadCountAdmin || 0,
                 unreadCountUser: updatedRoom?.unreadCountUser || 0
             });
 
-            // Legacy sync for old components
             socket.broadcast.to(roomId).emit('chat_seen', roomId);
             socket.broadcast.to('admin').emit('chat_seen', roomId);
 
@@ -165,14 +158,21 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected');
+        for (let [userId, sockets] of onlineUsers.entries()) {
+            if (sockets.has(socket.id)) {
+                sockets.delete(socket.id);
+                if (sockets.size === 0) {
+                    onlineUsers.delete(userId);
+                    io.emit('user_offline', { userId });
+                }
+                break;
+            }
+        }
     });
 });
 
-app.set('io', io);
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-    maxAge: '7d', // Cache for 7 days
+    maxAge: '7d',
     etag: true
 }));
 
@@ -180,22 +180,27 @@ connectDB().then(() => {
     console.log("Database connection sequence complete.");
     initCronJobs();
 
-    // --- Google Calendar Polling ---
     const { pollGoogleCalendar } = require('./services/googleCalendarService');
     const User = require('./models/User');
 
-    setInterval(async () => {
+    let calendarPollingInterval = setInterval(async () => {
         try {
             const connectedUsers = await User.find({
-                googleAccessToken: { $exists: true, $ne: null }
-            });
+                googleAccessToken: { $exists: true, $ne: null },
+                googleSyncError: { $ne: "INSUFFICIENT_SCOPES: Please disconnect and reconnect your Google Calendar to grant required permissions." }
+            }).select('_id');
+
+            if (connectedUsers.length === 0) return;
+
             for (const user of connectedUsers) {
                 await pollGoogleCalendar(user, io);
             }
         } catch (err) {
             console.error('Error in Google Calendar polling loop:', err.message);
         }
-    }, 60000); // Every 60 seconds
+    }, 5 * 60 * 1000);
+
+    process._calendarPollingInterval = calendarPollingInterval;
 
 }).catch(err => {
     console.error("Delayed Cron initialization due to DB issue:", err.message);
@@ -465,8 +470,28 @@ app.get('/api/health', (req, res) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log('-------------------------------------------');
-    console.log(`🚀 API Server running on port ${PORT}`);
-    console.log(`🔗 CORS configured for: ${allowedOrigins.join(', ')}`);
+    console.log(`API Server running on port ${PORT}`);
+    console.log(`CORS configured for: ${allowedOrigins.join(', ') || 'all origins'}`);
     console.log('-------------------------------------------');
 });
-// Trigger Restart
+
+// Graceful shutdown for Render/production
+const gracefulShutdown = (signal) => {
+    console.log(`\n${signal} received. Shutting down gracefully...`);
+    if (process._calendarPollingInterval) {
+        clearInterval(process._calendarPollingInterval);
+    }
+    server.close(() => {
+        mongoose.connection.close(false, () => {
+            console.log('MongoDB connection closed.');
+            process.exit(0);
+        });
+    });
+    setTimeout(() => {
+        console.error('Forced shutdown after timeout.');
+        process.exit(1);
+    }, 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

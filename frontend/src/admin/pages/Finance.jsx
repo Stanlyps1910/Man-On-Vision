@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { IndianRupee, TrendingUp, TrendingDown, Clock, Wallet, Filter, Download, Plus, X, ChevronRight, User, AlertCircle, CheckCircle2, BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "../../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -22,7 +23,8 @@ const AnimatedNumber = ({ value, prefix = "₹" }) => {
 };
 
 export default function Finance() {
-    const token = localStorage.getItem('token');
+    const { token: authContextToken } = useAuth();
+    const token = authContextToken || localStorage.getItem('token');
     const authHeader = token ? { headers: { 'x-auth-token': token } } : {};
     const API = import.meta.env.VITE_API_URL || '';
     const [stats, setStats] = useState({ annualSales: 0, annualProfit: 0, expenses: 0, pendingRevenue: 0 });

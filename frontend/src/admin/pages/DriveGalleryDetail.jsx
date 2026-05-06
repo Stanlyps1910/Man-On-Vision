@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Video as VideoIcon
 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +27,7 @@ import LoadingScreen from "../../components/common/LoadingScreen";
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function DriveGalleryDetail() {
+  const { token: authContextToken } = useAuth();
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
@@ -43,7 +45,7 @@ export default function DriveGalleryDetail() {
   const fetchEventData = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = authContextToken || localStorage.getItem('token');
       
       // Fetch Event Metadata
       const eventRes = await axios.get(`${API_BASE_URL}/api/drive-gallery/event/${eventId}`, {

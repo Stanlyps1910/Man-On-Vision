@@ -7,6 +7,8 @@ import Breadcrumbs from "../../../components/common/Breadcrumbs";
 import PageTransition from "../../../components/common/PageTransition";
 
 
+import ErrorBoundary from "../../../components/common/ErrorBoundary";
+
 export default function Layout() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
@@ -110,11 +112,14 @@ export default function Layout() {
 
                 <main className={`w-full mx-auto transition-all duration-500 ${isFocusMode ? "p-0 max-w-none h-screen flex flex-col justify-center" : "px-4 pt-24 md:px-10 lg:px-12 max-w-[1600px] animate-in fade-in slide-in-from-top-4 duration-1000"}`}>
                     <PageTransition>
-                        <Suspense fallback={<div className="flex h-64 w-full items-center justify-center text-xl opacity-50">Loading Dashboard...</div>}>
-                            <Outlet context={{ setIsFocusMode }} />
-                        </Suspense>
+                        <ErrorBoundary>
+                            <Suspense fallback={<div className="flex h-64 w-full items-center justify-center text-xl opacity-50">Loading Dashboard...</div>}>
+                                <Outlet context={{ setIsFocusMode }} />
+                            </Suspense>
+                        </ErrorBoundary>
                     </PageTransition>
                 </main>
+
 
                 {!isFocusMode && (
                     <footer className="mt-auto p-8 border-t border-[#e6e3df] text-center">

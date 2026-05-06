@@ -7,8 +7,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Dashboard() {
-  const { logout } = useAuth(); // Destructure logout from context
-  const token = localStorage.getItem('token');
+  const { logout, token: authContextToken } = useAuth(); // Destructure token from context
+  const token = authContextToken || localStorage.getItem('token');
   const authHeader = token ? { headers: { 'x-auth-token': token } } : {};
   const API = import.meta.env.VITE_API_URL || '';
   const navigate = useNavigate();
@@ -35,9 +35,10 @@ export default function Dashboard() {
   useEffect(() => {
     let isMounted = true;
 
+
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = authContextToken || localStorage.getItem('token');
         if (!token) return navigate('/auth');
         
         const currentAuthHeader = { headers: { Authorization: `Bearer ${token}` } };
@@ -49,21 +50,22 @@ export default function Dashboard() {
         ]);
 
         if (isMounted) {
-          setStats(statsRes.data);
-          setRecentActivity(activityRes.data);
-          setUpcomingEvents(eventsRes.data);
+          if (statsRes.data) setStats(prev => ({ ...prev, ...statsRes.data }));
+          if (Array.isArray(activityRes.data)) setRecentActivity(activityRes.data);
+          if (Array.isArray(eventsRes.data)) setUpcomingEvents(eventsRes.data);
           setIsSystemOnline(true);
           setLoading(false);
         }
       } catch (err) {
-        console.error("Dashboard error:", err);
+        console.error("--- [DASHBOARD ERROR] ---", err);
         if (err.response?.status === 401) {
-          logout(); // Use centralized logout to clear both Context and localStorage
+          console.warn("--- [DASHBOARD] --- Unauthorized (401), logging out ---");
+          logout(); 
           return;
         }
         if (isMounted) {
           setIsSystemOnline(false);
-          setLoading(false); // Force show structure even on error
+          setLoading(false); 
         }
       }
     };

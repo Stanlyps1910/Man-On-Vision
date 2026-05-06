@@ -453,6 +453,23 @@ router.post('/react/:messageId', auth, async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 });
 
+router.patch('/:messageId', auth, async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.messageId);
+        if (!message) return res.status(404).json({ msg: 'Message not found' });
+        if (String(message.sender) !== String(req.user.id)) {
+            return res.status(403).json({ msg: 'Not authorized to edit this message' });
+        }
+        message.text = req.body.text;
+        message.isEdited = true;
+        message.editedAt = new Date();
+        await message.save();
+        const io = req.app.get('io');
+        if (io) io.to(message.recipient).to(message.sender).emit('message_edited', message);
+        res.json(message);
+    } catch (err) { res.status(500).send('Server Error'); }
+});
+
 router.delete('/:id/:mode', auth, async (req, res) => {
     try {
         const message = await Message.findById(req.params.id);
@@ -471,7 +488,5 @@ router.delete('/:id/:mode', auth, async (req, res) => {
         res.json({ success: true });
     } catch (err) { res.status(500).send('Server Error'); }
 });
-
-module.exports = router;
 
 module.exports = router;

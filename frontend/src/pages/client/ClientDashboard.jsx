@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Quote, FolderOpen, Lock, CheckCircle, ArrowRight, Sparkles, Calendar, MessageSquare } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
+import API_BASE_URL from "../../utils/apiConfig";
 import toast from "react-hot-toast";
 
 export default function Home() {
@@ -20,10 +21,10 @@ export default function Home() {
             const token = localStorage.getItem('token');
             if (token) {
                 const [userRes, bookingsRes] = await Promise.all([
-                    axios.get(`${import.meta.env.VITE_API_URL || ""}/api/auth/me`, {
+                    axios.get(`${API_BASE_URL}/api/auth/me`, {
                         headers: { 'x-auth-token': token }
                     }),
-                    axios.get(`${import.meta.env.VITE_API_URL || ""}/api/leads/my-bookings`, {
+                    axios.get(`${API_BASE_URL}/api/leads/my-bookings`, {
                         headers: { 'x-auth-token': token }
                     })
                 ]);
@@ -44,32 +45,34 @@ export default function Home() {
     // Socket Listener for Real-time Lead Updates
     useEffect(() => {
         const token = localStorage.getItem("token");
-        if (userId && token) {
-            const socket = io(import.meta.env.VITE_API_URL || "", { 
-                auth: { token }
+        if (!userId || !token) return;
+
+        const socket = io(API_BASE_URL, { 
+            auth: { token }
+        });
+
+        socket.emit("join_chat", userId);
+
+        socket.on("lead_updated", (data) => {
+            console.log("Lead Status Updated:", data);
+            toast.success(`Your booking status for ${data.name || 'event'} has been updated to ${data.status}!`, {
+                icon: '',
+                duration: 5000,
+                style: {
+                    background: '#1C1C1C',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    textTransform: 'uppercase',
+                }
             });
+            fetchDashboardData();
+        });
 
-            socket.emit("join_chat", userId); // Join personal room
-
-            socket.on("lead_updated", (data) => {
-                console.log("🔔 Lead Status Updated:", data);
-                toast.success(`Your booking status for ${data.name || 'event'} has been updated to ${data.status}!`, {
-                    icon: '🚀',
-                    duration: 5000,
-                    style: {
-                        background: '#1C1C1C',
-                        color: '#fff',
-                        borderRadius: '12px',
-                        fontSize: '12px',
-                        textTransform: 'uppercase',
-                        tracking: '1px'
-                    }
-                });
-                fetchDashboardData(); // Re-fetch to show new status
-            });
-
-            return () => socket.disconnect();
-        }
+        return () => {
+            socket.off("lead_updated");
+            socket.disconnect();
+        };
     }, [userId]);
 
     const getStatusColor = (status) => {

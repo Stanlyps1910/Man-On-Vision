@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Image as ImageIcon, FolderOpen, Calendar, ChevronRight, Pencil, Loader2, Trash2 } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +13,7 @@ import EditClientModal from "../components/gallery/EditClientModal";
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 export default function SmartGallery() {
+  const { token: authContextToken } = useAuth();
   const navigate = useNavigate();
   const [galleries, setGalleries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,7 @@ export default function SmartGallery() {
   const fetchGalleries = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = authContextToken || localStorage.getItem('token');
       const res = await axios.get(`${API_BASE_URL}/api/drive-gallery`, {
         headers: { 'x-auth-token': token }
       });

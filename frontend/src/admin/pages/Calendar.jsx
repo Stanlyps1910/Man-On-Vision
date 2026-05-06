@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, parseISO, startOfDay, addDays } from "date-fns";
 import { X, Calendar as CalendarIcon, MapPin, Users, Clock, Save, Trash2, LogOut, ChevronLeft, ChevronRight, Plus, RefreshCw, Filter, Settings, Search, Lock } from "lucide-react";
 import toast from "react-hot-toast";
@@ -38,6 +39,7 @@ const EVENT_TYPE_COLORS = {
 };
 
 export default function Calendar() {
+    const { token: authContextToken } = useAuth();
     const [selectedDate, setSelectedDate] = useState(null);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
 
@@ -46,7 +48,7 @@ export default function Calendar() {
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-    const token = localStorage.getItem('token');
+    const token = authContextToken || localStorage.getItem('token');
     const authHeader = token ? { headers: { 'x-auth-token': token } } : {};
     const API = import.meta.env.VITE_API_URL || API_BASE_URL;
     const [currentDate, setCurrentDate] = useState(new Date());

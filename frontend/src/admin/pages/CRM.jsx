@@ -11,7 +11,10 @@ import { Trash2, UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 import API_BASE_URL from '../../utils/apiConfig';
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function CRM() {
+  const { token: authContextToken } = useAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("leads");
   const [leads, setLeads] = useState([]);
@@ -88,7 +91,7 @@ export default function CRM() {
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/leads`, {
         headers: { "x-auth-token": token }
       });
@@ -102,7 +105,7 @@ export default function CRM() {
 
   const fetchInvoices = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = authContextToken || localStorage.getItem("token");
       const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/invoices`, {
         headers: { "x-auth-token": token }
       });

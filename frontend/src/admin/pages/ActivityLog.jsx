@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuth } from "../../context/AuthContext";
 import { Bell, Clock, Trash2, Check, AlertCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import toast from "react-hot-toast";
 
 export default function ActivityLog() {
-    const token = localStorage.getItem('token');
+    const { token: authContextToken } = useAuth();
+    const token = authContextToken || localStorage.getItem('token');
     const authHeader = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
     const API = import.meta.env.VITE_API_URL || '';
     const [notifications, setNotifications] = useState([]);

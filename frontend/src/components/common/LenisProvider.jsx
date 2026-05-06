@@ -32,6 +32,7 @@ const LenisProvider = ({ children }) => {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(lenis.raf);
       lenis.destroy();
     };
   }, []);

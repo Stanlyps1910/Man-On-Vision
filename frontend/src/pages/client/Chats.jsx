@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { 
@@ -9,14 +9,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useDispatch } from 'react-redux';
 import { fetchClientUnreadCounts, clearClientUnread, handleRoomUpdate, markRoomAsRead } from '../../store/slices/chatSlice';
+import API_BASE_URL from "../../utils/apiConfig";
 import toast, { Toaster } from 'react-hot-toast';
 
-// Modular Components
 import MessageBubble from "../../components/client/Chat/MessageBubble";
 import ChatInput from "../../components/client/Chat/ChatInput";
 import ChatSearchBar from "../../components/client/Chat/SearchBar";
-
-const API_URL = import.meta.env.VITE_API_URL || "";
 
 export default function Chats() {
     const { user, token: authContextToken } = useAuth();
@@ -47,7 +45,7 @@ export default function Chats() {
         const token = cleanToken(authContextToken || localStorage.getItem("token"));
         if (!token || !user) return;
 
-        const socket = io(API_URL, { 
+        const socket = io(API_BASE_URL, { 
             auth: { token },
             reconnection: true,
             reconnectionAttempts: 10
@@ -55,12 +53,11 @@ export default function Chats() {
         socketRef.current = socket;
 
         socket.on('connect', () => {
-            console.log('--- [SOCKET] --- Client connected successfully ---');
             socket.emit("join_chat", user.id);
         });
 
         socket.on('connect_error', (err) => {
-            console.warn('--- [SOCKET] --- Connection error:', err.message);
+            console.warn('Socket connection error:', err.message);
         });
 
         // Room-based real-time unread engine
@@ -75,7 +72,6 @@ export default function Chats() {
                     return [...prev, message];
                 });
                 
-                // If we are recipient and currently viewing this chat, mark it seen instantly
                 if (recipientId === user.id) {
                    socket.emit('message_delivered', { messageId: message._id, senderId: senderId });
                    markAsSeen();
@@ -84,7 +80,6 @@ export default function Chats() {
         });
 
         socket.on("chat_seen", (data) => {
-            // When admin sees our messages, update blue ticks
             if (data.chatId === 'admin' || data.chatId === user.id) {
                 setMessages(prev => prev.map(m => (m.sender === user.id) ? { ...m, status: 'seen', seen: true, isRead: true } : m));
             }
@@ -107,7 +102,6 @@ export default function Chats() {
         });
         
         socket.on('chat_deleted', (data) => {
-            // WhatsApp-style instant wipe across all sessions/tabs
             if (data.userId === 'admin') {
                 setMessages([]);
                 toast.success("Conversation cleared globally");
@@ -122,7 +116,21 @@ export default function Chats() {
             if (data.senderId === 'admin' || data.senderId === 'hardcoded-admin-id') setIsTyping(false);
         });
 
-        return () => socket.disconnect();
+        return () => {
+            socket.off('connect');
+            socket.off('connect_error');
+            socket.off('room_updated');
+            socket.off('new_message');
+            socket.off('chat_seen');
+            socket.off('message_status_update');
+            socket.off('message_reaction_update');
+            socket.off('message_edited');
+            socket.off('message_deleted_everyone');
+            socket.off('chat_deleted');
+            socket.off('display_typing');
+            socket.off('hide_typing');
+            socket.disconnect();
+        };
     }, [user?.id, authContextToken]);
 
     const fetchMessages = async () => {
@@ -130,7 +138,7 @@ export default function Chats() {
         if (!token || !user) return;
         
         try {
-            const res = await axios.get(`${API_URL}/api/chats`, {
+            const res = await axios.get(`${API_BASE_URL}/api/chats`, {
                 headers: { 
                     "x-auth-token": token,
                     "Authorization": `Bearer ${token}`
@@ -140,9 +148,7 @@ export default function Chats() {
             setLoading(false);
             scrollToBottom('auto');
         } catch (err) {
-            if (err.response?.status === 401) {
-                console.warn("--- [AUTH/401] --- Rejected fetchMessages (Invalid/Stale Token)");
-            } else {
+            if (err.response?.status !== 401) {
                 console.error("Failed to fetch messages", err);
             }
             setLoading(false);
@@ -154,38 +160,34 @@ export default function Chats() {
         if (!token || !user) return;
 
         try {
-            // 1. Instant Optimistic UI Clear (Zero Delay)
             dispatch(markRoomAsRead({ roomId: user.id || user._id, readerType: 'user' }));
 
-            // 2. Direct Socket Signal for global sync
             if (socketRef.current) {
                 socketRef.current.emit('mark_read', { roomId: user.id || user._id, readerType: 'user' });
             }
 
-            await axios.put(`${API_URL}/api/chats/read`, { chatId: 'admin' }, {
+            await axios.put(`${API_BASE_URL}/api/chats/read`, { chatId: 'admin' }, {
                 headers: { 
                     "x-auth-token": token,
                     "Authorization": `Bearer ${token}`
                 }
             });
             
-            // Secondary Syncs
             dispatch(fetchClientUnreadCounts());
         } catch (err) {
-            if (err.response?.status === 401) {
-                 console.warn("--- [AUTH/401] --- Rejected markAsSeen (Invalid/Stale Token)");
+            if (err.response?.status !== 401) {
+                console.error("Failed to mark as seen", err);
             }
         }
     };
 
     useEffect(() => {
         const token = cleanToken(authContextToken || localStorage.getItem("token"));
-        // Strict guard: only fire when session is fully ready
         if (user && token) {
             fetchMessages();
             markAsSeen();
         }
-    }, [user?.id, user?._id, authContextToken]);
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -247,7 +249,7 @@ export default function Chats() {
 
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`${API_URL}/api/chats`, 
+            const res = await axios.post(`${API_BASE_URL}/api/chats`, 
                 { text, recipient: "admin", replyTo: replyingTo?._id },
                 { headers: { "x-auth-token": token } }
             );
@@ -274,7 +276,7 @@ export default function Chats() {
     const handleEdit = async (messageId, newText) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.patch(`${API_URL}/api/chats/${messageId}`, 
+            const res = await axios.patch(`${API_BASE_URL}/api/chats/${messageId}`, 
                 { text: newText },
                 { headers: { "x-auth-token": token } }
             );
@@ -288,7 +290,7 @@ export default function Chats() {
     const handleDeleteMe = async (messageId) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/api/chats/${messageId}/me`, {
+            await axios.delete(`${API_BASE_URL}/api/chats/${messageId}/me`, {
                 headers: { "x-auth-token": token }
             });
             setMessages(prev => prev.filter(m => m._id !== messageId));
@@ -298,7 +300,7 @@ export default function Chats() {
     const handleDeleteEveryone = async (messageId) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${API_URL}/api/chats/${messageId}/everyone`, {
+            await axios.delete(`${API_BASE_URL}/api/chats/${messageId}/everyone`, {
                 headers: { "x-auth-token": token }
             });
             setMessages(prev => prev.map(m => m._id === messageId ? { ...m, text: 'This message was deleted', isDeletedEveryone: true } : m));
@@ -308,7 +310,7 @@ export default function Chats() {
     const handleReact = async (messageId, emoji) => {
         try {
             const token = localStorage.getItem("token");
-            const res = await axios.post(`${API_URL}/api/chats/react/${messageId}`, 
+            const res = await axios.post(`${API_BASE_URL}/api/chats/react/${messageId}`, 
                 { emoji },
                 { headers: { "x-auth-token": token } }
             );
@@ -322,7 +324,7 @@ export default function Chats() {
             if (!token) return;
 
             // Updated to use the professional DELETE API (Strictly Client)
-            await axios.delete(`${API_URL}/api/chats/clear-history`, {
+            await axios.delete(`${API_BASE_URL}/api/chats/clear-history`, {
                 headers: {
                     "x-auth-token": token,
                     "Authorization": `Bearer ${token}`

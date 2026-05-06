@@ -131,7 +131,7 @@ const useGSAPAnimations = (rootRef) => {
         }, rootRef);
 
         return () => ctx.revert();
-    }, [rootRef]);
+    }, []);
 };
 
 export default useGSAPAnimations;
