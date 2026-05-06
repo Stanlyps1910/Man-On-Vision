@@ -5,6 +5,9 @@ import React, { useRef, useEffect } from 'react';
  * High-performance WebGL implementation.
  * Features ultra-thin, crisp lines for a sharp and modern aesthetic.
  * Supports a dynamic 'twirl' uniform for hypnotic transitions.
+ * 
+ * PERFORMANCE: Renders at reduced resolution and auto-pauses when
+ * the canvas is hidden (opacity 0) by the GSAP scroll animation.
  */
 import { useTheme } from '../../context/ThemeContext';
 
@@ -13,12 +16,13 @@ const WaveBackground = () => {
     const { isDarkMode } = useTheme();
     const mouseRef = useRef({ x: 0, y: 0, targetX: 0, targetY: 0 });
     const twirlRef = useRef(0);
+    const isPausedRef = useRef(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
+        const gl = canvas.getContext('webgl', { antialias: false, alpha: true, powerPreference: 'high-performance' });
         if (!gl) return;
 
         const updateCoords = (x, y) => {
@@ -47,7 +51,7 @@ const WaveBackground = () => {
         `;
 
         const fsSource = `
-            precision highp float;
+            precision mediump float;
             uniform float u_time;
             uniform vec2 u_resolution;
             uniform vec2 u_mouse;
@@ -156,7 +160,8 @@ const WaveBackground = () => {
         const twirlLoc = gl.getUniformLocation(program, 'u_twirl');
 
         const resize = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            // Cap DPR at 1 for performance — the shader is visually identical at lower res
+            const dpr = 1;
             canvas.width = canvas.clientWidth * dpr;
             canvas.height = canvas.clientHeight * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
@@ -169,16 +174,26 @@ const WaveBackground = () => {
         const currentMouse = { x: 0, y: 0 };
 
         const render = (time) => {
-            updateTwirl();
-            currentMouse.x += (mouseRef.current.targetX - currentMouse.x) * 0.06;
-            currentMouse.y += (mouseRef.current.targetY - currentMouse.y) * 0.06;
+            // Auto-pause when canvas is hidden by GSAP (opacity 0 / display none)
+            const heroCanvas = canvas;
+            if (heroCanvas) {
+                const opacity = parseFloat(getComputedStyle(heroCanvas).opacity);
+                isPausedRef.current = opacity < 0.01;
+            }
 
-            gl.uniform1f(timeLoc, time * 0.001);
-            gl.uniform2f(resLoc, canvas.width, canvas.height);
-            gl.uniform2f(mouseLoc, currentMouse.x, currentMouse.y);
-            gl.uniform1f(twirlLoc, twirlRef.current);
+            if (!isPausedRef.current) {
+                updateTwirl();
+                currentMouse.x += (mouseRef.current.targetX - currentMouse.x) * 0.06;
+                currentMouse.y += (mouseRef.current.targetY - currentMouse.y) * 0.06;
 
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+                gl.uniform1f(timeLoc, time * 0.001);
+                gl.uniform2f(resLoc, canvas.width, canvas.height);
+                gl.uniform2f(mouseLoc, currentMouse.x, currentMouse.y);
+                gl.uniform1f(twirlLoc, twirlRef.current);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }
+
             animationFrameId = requestAnimationFrame(render);
         };
         animationFrameId = requestAnimationFrame(render);

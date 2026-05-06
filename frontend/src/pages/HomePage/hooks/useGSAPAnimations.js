@@ -15,21 +15,22 @@ const useGSAPAnimations = (rootRef) => {
                     trigger: "#intro-container",
                     start: "top top",
                     end: "+=200%",     // Perfect scroll distance
-                    scrub: 1.2,        
-                    pin: true,         
-                    pinSpacing: true,  
+                    scrub: 1.2,
+                    pin: true,
+                    pinSpacing: true,
                     invalidateOnRefresh: true,
                     onUpdate: (self) => {
-                        window.heroTwirl = self.progress * 20; 
+                        window.heroTwirl = self.progress * 20;
                     }
                 }
             });
 
             introTl
                 .to("#hero-logo-container", {
-                    scale: 150,
+                    scale: 30,
                     ease: "power2.in",
-                    duration: 3
+                    duration: 3,
+                    force3D: true, // GPU-accelerated transform
                 })
                 .to("#hero-logo-container", {
                     opacity: 0,
@@ -37,11 +38,11 @@ const useGSAPAnimations = (rootRef) => {
                 }, "-=0.5")
                 .to("#hero-canvas", {
                     opacity: 0,
-                    filter: "blur(100px)",
-                    duration: 2.5
+                    duration: 2.5,
+                    force3D: true,
                 }, 0.5)
 
-                .fromTo("#flow-section", 
+                .fromTo("#flow-section",
                     { opacity: 0, scale: 0.5, pointerEvents: "none" },
                     {
                         opacity: 1,
@@ -49,21 +50,21 @@ const useGSAPAnimations = (rootRef) => {
                         pointerEvents: "auto",
                         duration: 2.0,
                         ease: "power2.out"
-                    }, 
+                    },
                     "-=1.5"
                 );
 
             // 2. STORYTELLING SECTIONS - STACKED SYSTEM
             const sections = gsap.utils.toArray('.scroll-section');
-            
+
             sections.forEach((section, index) => {
                 // Skip 'about' as it is part of the intro overlay
                 if (section.id === 'about') return;
 
                 // Ensure a clean starting state
-                gsap.set(section, { 
+                gsap.set(section, {
                     zIndex: index + 10,
-                    position: 'relative' 
+                    position: 'relative'
                 });
 
                 // --- ITEM ANIMATIONS (Zoom In) ---
@@ -114,7 +115,7 @@ const useGSAPAnimations = (rootRef) => {
                         start: "top top",
                         end: "+=100%", // Pin for exactly one screen height
                         pin: true,
-                        pinSpacing: true, 
+                        pinSpacing: true,
                         scrub: true,
                         invalidateOnRefresh: true,
                         onLeave: () => {

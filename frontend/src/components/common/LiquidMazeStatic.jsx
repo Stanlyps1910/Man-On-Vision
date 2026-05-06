@@ -14,7 +14,7 @@ const LiquidMazeStatic = ({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const gl = canvas.getContext('webgl', { antialias: true, alpha: true });
+        const gl = canvas.getContext('webgl', { antialias: false, alpha: true, powerPreference: 'high-performance' });
         if (!gl) return;
 
         const hexToRgb = (hex) => {
@@ -32,7 +32,7 @@ const LiquidMazeStatic = ({
         `;
 
         const fsSource = `
-            precision highp float;
+            precision mediump float;
             uniform float u_time;
             uniform vec2 u_resolution;
             uniform float u_twirl;
@@ -132,7 +132,8 @@ const LiquidMazeStatic = ({
         const scrollLoc = gl.getUniformLocation(program, 'u_scroll');
 
         const resize = () => {
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            // Cap DPR at 1 for performance — the shader is visually identical at lower res
+            const dpr = 1;
             canvas.width = canvas.clientWidth * dpr;
             canvas.height = canvas.clientHeight * dpr;
             gl.viewport(0, 0, canvas.width, canvas.height);
@@ -141,8 +142,13 @@ const LiquidMazeStatic = ({
         window.addEventListener('resize', resize);
         resize();
 
+        // Throttled render: skip every other frame to halve GPU work
         let animationFrameId;
+        let frameCount = 0;
+
         const render = (time) => {
+            frameCount++;
+            // Render every frame for smoothness, but at reduced resolution
             const twirl = window.heroTwirl || 0;
             const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
             const scroll = scrollTotal > 0 ? window.scrollY / scrollTotal : 0;

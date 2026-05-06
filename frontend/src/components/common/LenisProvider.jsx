@@ -24,22 +24,15 @@ const LenisProvider = ({ children }) => {
     // Sync ScrollTrigger with Lenis
     lenis.on('scroll', ScrollTrigger.update);
 
+    // Use ONLY gsap.ticker for the RAF loop — avoid duplicate requestAnimationFrame
     gsap.ticker.add((time) => {
       lenis.raf(time * 1000);
     });
 
     gsap.ticker.lagSmoothing(0);
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
     return () => {
       lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
     };
   }, []);
 
